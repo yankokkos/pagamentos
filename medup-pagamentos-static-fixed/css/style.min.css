@@ -1,0 +1,11 @@
+/* MedUp Pagamentos - CSS Minificado */ 
+body{background:linear-gradient(135deg,#021015 0%,#042938 50%,#021015 100%);min-height:100vh;font-family:'Inter',sans-serif;color:#96d4ff} 
+.container{max-width:1400px;padding:2rem} 
+.stats-card{background:linear-gradient(135deg,rgba(2,16,21,0.95) 0%,rgba(4,41,56,0.9) 100%);backdrop-filter:blur(20px);border:1px solid rgba(150,212,255,0.3);border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.3);min-height:120px;padding:1.5rem;transition:all 0.3s ease} 
+.table{background:rgba(2,16,21,0.8);color:rgba(150,212,255,0.9);border-radius:10px;overflow:hidden} 
+.btn-primary{background:linear-gradient(135deg,#96d4ff 0%,#042938 100%);border:none;color:#021015;font-weight:600;transition:all 0.3s ease} 
+.btn-primary:hover{background:linear-gradient(135deg,#042938 0%,#96d4ff 100%);color:#96d4ff;transform:translateY(-2px);box-shadow:0 10px 20px rgba(150,212,255,0.3)} 
+.modal-content{background:linear-gradient(135deg,rgba(2,16,21,0.95) 0%,rgba(4,41,56,0.9) 100%) !important;border:1px solid rgba(150,212,255,0.3) !important;border-radius:20px !important} 
+.modal .table{background:rgba(2,16,21,0.8) !important;color:rgba(150,212,255,0.9) !important} 
+.modal .table thead th{background:rgba(4,41,56,0.9) !important;color:rgba(150,212,255,1) !important;border-color:rgba(150,212,255,0.3) !important} 
+.modal .table tbody td{background:rgba(2,16,21,0.8) !important;color:rgba(150,212,255,0.9) !important;border-color:rgba(150,212,255,0.2) !important} 
