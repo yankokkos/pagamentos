@@ -52,17 +52,44 @@ async function carregarDados() {
         const response = await fetch('/api/status-clientes');
         dadosClientes = await response.json();
         
+        // Verificar se são dados de exemplo
+        if (dadosClientes.length > 0 && dadosClientes[0].fonte === 'demo') {
+            mostrarMensagemInfo('⚠️ Modo Demo: Configure as credenciais do Asaas para ver dados reais.');
+        } else if (dadosClientes.length > 0 && dadosClientes[0].fonte === 'erro') {
+            mostrarMensagemInfo('❌ Erro de conexão: Verifique as configurações das APIs.');
+        } else if (dadosClientes.length === 0) {
+            mostrarMensagemInfo('ℹ️ Nenhum cliente encontrado. Configure as credenciais das APIs.');
+        }
+        
         atualizarEstatisticas();
         atualizarTabela();
         
-        // Verificar se há mensagem sobre Efí não configurada
-        if (dadosClientes.length === 0) {
-            mostrarMensagemInfo('Apenas dados do Asaas estão sendo exibidos. Configure as credenciais da Efí para ver dados completos.');
-        }
-        
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
-        alert('Erro ao carregar dados dos clientes');
+        mostrarMensagemInfo('❌ Erro ao conectar com o servidor. Verifique sua conexão.');
+        // Usar dados de exemplo em caso de erro
+        dadosClientes = [
+            {
+                id: 'error-1',
+                nome: 'Erro de Conexão',
+                email: 'erro@exemplo.com',
+                cpfCnpj: '000.000.000-00',
+                telefone: '(00) 00000-0000',
+                status: 'erro',
+                inadimplencia: 0,
+                cobrancasVencidas: 0,
+                valorDevido: 0,
+                valorPago: 0,
+                ultimoPagamento: null,
+                ultimoVencimento: null,
+                statusUltimoBoleto: null,
+                ultimaAtividade: null,
+                ativo: false,
+                fonte: 'erro'
+            }
+        ];
+        atualizarEstatisticas();
+        atualizarTabela();
     } finally {
         loading.classList.remove('show');
     }
