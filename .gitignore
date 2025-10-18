@@ -68,3 +68,13 @@ build/
 # Temporary files
 tmp/
 temp/
+temp*.json
+*.tmp
+*.temp
+
+# Development files
+DOCUMENTACAO.md
+GUIA_RAPIDO.md
+IDENTIDADE_VISUAL.md
+setup.bat
+setup.sh

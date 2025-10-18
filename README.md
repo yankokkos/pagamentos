@@ -32,8 +32,8 @@ Sistema web para gestão de cobranças integrado com Asaas e Efí, desenvolvido 
 
 1. Clone o repositório:
 ```bash
-git clone <seu-repositorio>
-cd medup-pagamentos
+git clone https://github.com/yankokkos/pagamentos.git
+cd pagamentos
 ```
 
 2. Instale as dependências:
