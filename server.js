@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const asaasService = require('./services/asaasService');
@@ -37,11 +38,96 @@ app.use(limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Middleware de autenticação
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Token de acesso necessário' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET || 'medup-secret-key', (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Token inválido' });
+    }
+    req.user = user;
+    next();
+  });
+};
+
 // Servir arquivos estáticos
 app.use(express.static('public'));
 
-// Rotas da API
-app.get('/api/clientes', async (req, res) => {
+// Rota para página de login
+app.get('/login', (req, res) => {
+  res.sendFile(__dirname + '/public/login.html');
+});
+
+// Rota de login (sem autenticação)
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  
+  // Credenciais hardcoded conforme solicitado
+  if (username === 'Tiago' && password === 'medup1302@') {
+    const token = jwt.sign(
+      { username: 'Tiago', role: 'admin' },
+      process.env.JWT_SECRET || 'medup-secret-key',
+      { expiresIn: '24h' }
+    );
+    
+    res.json({
+      token,
+      user: {
+        username: 'Tiago',
+        role: 'admin'
+      }
+    });
+  } else {
+    res.status(401).json({ message: 'Credenciais inválidas' });
+  }
+});
+
+// Rota de logout
+app.post('/api/logout', (req, res) => {
+  res.json({ message: 'Logout realizado com sucesso' });
+});
+
+// Middleware para verificar autenticação em rotas protegidas
+app.use((req, res, next) => {
+  // Permitir acesso à página de login, rota de login da API e arquivos estáticos
+  if (req.path === '/login' || req.path === '/api/login' || req.path.startsWith('/css/') || req.path.startsWith('/js/') || req.path.startsWith('/img/')) {
+    return next();
+  }
+  
+  // Para outras rotas, verificar se está autenticado
+  if (req.path === '/' || req.path.startsWith('/api/')) {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      if (req.path.startsWith('/api/')) {
+        return res.status(401).json({ message: 'Token de acesso necessário' });
+      } else {
+        return res.redirect('/login');
+      }
+    }
+    
+    try {
+      jwt.verify(token, process.env.JWT_SECRET || 'medup-secret-key');
+      next();
+    } catch (error) {
+      if (req.path.startsWith('/api/')) {
+        return res.status(403).json({ message: 'Token inválido' });
+      } else {
+        return res.redirect('/login');
+      }
+    }
+  } else {
+    next();
+  }
+});
+
+// Rotas da API (protegidas)
+app.get('/api/clientes', authenticateToken, async (req, res) => {
   try {
     const clientes = await asaasService.getClientes();
     res.json(clientes);
@@ -81,7 +167,7 @@ app.get('/api/asaas-historico', async (req, res) => {
 });
 
 // Rota para buscar detalhes de um cliente específico
-app.get('/api/cliente-detalhes/:clienteId', async (req, res) => {
+app.get('/api/cliente-detalhes/:clienteId', authenticateToken, async (req, res) => {
     try {
         const { clienteId } = req.params;
         
@@ -156,33 +242,8 @@ app.get('/api/efi-links', async (req, res) => {
   }
 });
 
-app.get('/api/status-clientes', async (req, res) => {
+app.get('/api/status-clientes', authenticateToken, async (req, res) => {
   try {
-    // Verificar se as credenciais do Asaas estão configuradas
-    if (!process.env.ASAAS_API_KEY) {
-      console.log('Aviso: Credenciais do Asaas não configuradas. Retornando dados de exemplo.');
-      return res.json([
-        {
-          id: 'demo-1',
-          nome: 'Cliente Demo',
-          email: 'demo@exemplo.com',
-          cpfCnpj: '123.456.789-00',
-          telefone: '(11) 99999-9999',
-          status: 'regular',
-          inadimplencia: 0,
-          cobrancasVencidas: 0,
-          valorDevido: 0,
-          valorPago: 1500.00,
-          ultimoPagamento: '2024-10-01',
-          ultimoVencimento: '2024-11-15',
-          statusUltimoBoleto: 'PENDING',
-          ultimaAtividade: '2024-10-01',
-          ativo: true,
-          fonte: 'demo'
-        }
-      ]);
-    }
-
     // Buscar dados do Asaas com limite maior e dados históricos
     const [clientes, cobrancas, cobrancasHistoricas] = await Promise.all([
       asaasService.getClientes({ limit: 1000 }),
@@ -216,27 +277,7 @@ app.get('/api/status-clientes', async (req, res) => {
     res.json(statusClientes);
   } catch (error) {
     console.error('Erro ao processar status dos clientes:', error);
-    // Retornar dados de exemplo em caso de erro
-    res.json([
-      {
-        id: 'error-demo',
-        nome: 'Erro na Conexão',
-        email: 'erro@exemplo.com',
-        cpfCnpj: '000.000.000-00',
-        telefone: '(00) 00000-0000',
-        status: 'erro',
-        inadimplencia: 0,
-        cobrancasVencidas: 0,
-        valorDevido: 0,
-        valorPago: 0,
-        ultimoPagamento: null,
-        ultimoVencimento: null,
-        statusUltimoBoleto: null,
-        ultimaAtividade: null,
-        ativo: false,
-        fonte: 'erro'
-      }
-    ]);
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
 

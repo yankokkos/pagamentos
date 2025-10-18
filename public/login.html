@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MedUp Pagamentos - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #021015 0%, #042938 50%, #021015 100%);
+            background: linear-gradient(135deg, #021015 0%, #042938 50%, #0a4d6b 100%);
             min-height: 100vh;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .login-container {
@@ -23,10 +22,10 @@
 
         .login-card {
             background: linear-gradient(135deg, rgba(2, 16, 21, 0.95) 0%, rgba(4, 41, 56, 0.9) 100%);
-            backdrop-filter: blur(20px);
             border: 1px solid rgba(150, 212, 255, 0.3);
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
             padding: 3rem;
             width: 100%;
             max-width: 400px;
@@ -40,86 +39,84 @@
         .logo-section img {
             width: 80px;
             height: 80px;
+            border-radius: 50%;
             margin-bottom: 1rem;
+            border: 3px solid rgba(150, 212, 255, 0.5);
         }
 
         .logo-section h1 {
-            color: #96d4ff;
+            color: rgba(150, 212, 255, 1);
             font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
+            font-weight: 300;
+            margin: 0;
         }
 
         .logo-section p {
             color: rgba(150, 212, 255, 0.7);
-            font-size: 1rem;
+            font-size: 0.9rem;
+            margin: 0.5rem 0 0 0;
         }
 
-        .form-label {
-            color: #96d4ff;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
+        .form-floating {
+            margin-bottom: 1.5rem;
         }
 
-        .form-control {
+        .form-floating input {
             background: rgba(2, 16, 21, 0.8);
             border: 1px solid rgba(150, 212, 255, 0.3);
-            color: #96d4ff;
+            color: rgba(150, 212, 255, 0.9);
             border-radius: 10px;
-            padding: 0.75rem 1rem;
-            transition: all 0.3s ease;
         }
 
-        .form-control:focus {
+        .form-floating input:focus {
             background: rgba(2, 16, 21, 0.9);
-            border-color: #96d4ff;
+            border-color: rgba(150, 212, 255, 0.6);
             box-shadow: 0 0 0 0.2rem rgba(150, 212, 255, 0.25);
-            color: #96d4ff;
+            color: rgba(150, 212, 255, 1);
         }
 
-        .form-control::placeholder {
-            color: rgba(150, 212, 255, 0.5);
+        .form-floating label {
+            color: rgba(150, 212, 255, 0.7);
         }
 
         .btn-login {
-            background: linear-gradient(135deg, #96d4ff 0%, #042938 100%);
-            border: none;
-            color: #021015;
-            font-weight: 600;
-            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, #0a4d6b 0%, #042938 100%);
+            border: 1px solid rgba(150, 212, 255, 0.3);
+            color: rgba(150, 212, 255, 1);
             border-radius: 10px;
+            padding: 0.75rem 2rem;
+            font-weight: 500;
             transition: all 0.3s ease;
             width: 100%;
         }
 
         .btn-login:hover {
-            background: linear-gradient(135deg, #042938 0%, #96d4ff 100%);
-            color: #96d4ff;
+            background: linear-gradient(135deg, #042938 0%, #0a4d6b 100%);
+            border-color: rgba(150, 212, 255, 0.6);
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(150, 212, 255, 0.3);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
         }
 
         .alert {
             background: rgba(220, 53, 69, 0.2);
             border: 1px solid rgba(220, 53, 69, 0.3);
-            color: #ff6b6b;
+            color: rgba(255, 182, 193, 1);
             border-radius: 10px;
         }
 
-        .input-group-text {
-            background: rgba(2, 16, 21, 0.8);
-            border: 1px solid rgba(150, 212, 255, 0.3);
-            color: #96d4ff;
-            border-radius: 10px 0 0 10px;
+        .loading {
+            display: none;
         }
 
-        .input-group .form-control {
-            border-radius: 0 10px 10px 0;
-            border-left: none;
+        .loading.show {
+            display: inline-block;
         }
 
-        .input-group:focus-within .input-group-text {
-            border-color: #96d4ff;
+        @media (max-width: 576px) {
+            .login-card {
+                margin: 1rem;
+                padding: 2rem;
+            }
         }
     </style>
 </head>
@@ -127,38 +124,34 @@
     <div class="login-container">
         <div class="login-card">
             <div class="logo-section">
-                <img src="/favicon.svg" alt="MedUp Logo">
-                <h1>MedUp</h1>
-                <p>Sistema de Pagamentos</p>
+                <img src="https://via.placeholder.com/80x80/0a4d6b/96d4ff?text=M" alt="MedUp Logo">
+                <h1>MedUp Pagamentos</h1>
+                <p>Sistema de Gestão de Cobranças</p>
             </div>
 
             <form id="loginForm">
-                <div class="mb-3">
-                    <label for="username" class="form-label">
-                        <i class="fas fa-user me-2"></i>Usuário
-                    </label>
-                    <input type="text" class="form-control" id="username" placeholder="Digite seu usuário" required>
-                </div>
-
-                <div class="mb-4">
-                    <label for="password" class="form-label">
-                        <i class="fas fa-lock me-2"></i>Senha
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="fas fa-key"></i>
-                        </span>
-                        <input type="password" class="form-control" id="password" placeholder="Digite sua senha" required autocomplete="current-password">
-                    </div>
-                </div>
-
-                <div id="errorMessage" class="alert alert-danger d-none" role="alert">
+                <div class="alert alert-danger" id="errorAlert" style="display: none;">
                     <i class="fas fa-exclamation-triangle me-2"></i>
-                    <span id="errorText">Usuário ou senha incorretos!</span>
+                    <span id="errorMessage"></span>
+                </div>
+
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="username" placeholder="Usuário" required>
+                    <label for="username"><i class="fas fa-user me-2"></i>Usuário</label>
+                </div>
+
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="password" placeholder="Senha" required>
+                    <label for="password"><i class="fas fa-lock me-2"></i>Senha</label>
                 </div>
 
                 <button type="submit" class="btn btn-login">
-                    <i class="fas fa-sign-in-alt me-2"></i>Entrar
+                    <span class="loading" id="loadingSpinner">
+                        <i class="fas fa-spinner fa-spin me-2"></i>
+                    </span>
+                    <span id="loginText">
+                        <i class="fas fa-sign-in-alt me-2"></i>Entrar
+                    </span>
                 </button>
             </form>
         </div>
@@ -166,36 +159,57 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
+            const errorAlert = document.getElementById('errorAlert');
+            const errorMessage = document.getElementById('errorMessage');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const loginText = document.getElementById('loginText');
             
-            // Credenciais corretas
-            if (username === 'Tiago' && password === 'medup1302@') {
-                // Salvar sessão
-                sessionStorage.setItem('medup_logged_in', 'true');
-                sessionStorage.setItem('medup_user', username);
+            // Mostrar loading
+            loadingSpinner.classList.add('show');
+            loginText.style.display = 'none';
+            errorAlert.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
                 
-                // Redirecionar para a aplicação principal
-                window.location.href = '/';
-            } else {
-                // Mostrar erro
-                errorText.textContent = 'Usuário ou senha incorretos!';
-                errorDiv.classList.remove('d-none');
+                const result = await response.json();
                 
-                // Limpar campos
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
-                document.getElementById('username').focus();
+                if (response.ok) {
+                    // Login bem-sucedido
+                    localStorage.setItem('token', result.token);
+                    localStorage.setItem('user', JSON.stringify(result.user));
+                    window.location.href = '/';
+                } else {
+                    // Erro no login
+                    errorMessage.textContent = result.message || 'Erro ao fazer login';
+                    errorAlert.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Erro no login:', error);
+                errorMessage.textContent = 'Erro de conexão. Tente novamente.';
+                errorAlert.style.display = 'block';
+            } finally {
+                // Esconder loading
+                loadingSpinner.classList.remove('show');
+                loginText.style.display = 'inline';
             }
         });
 
-        // Focar no campo usuário ao carregar
-        document.getElementById('username').focus();
+        // Verificar se já está logado
+        if (localStorage.getItem('token')) {
+            window.location.href = '/';
+        }
     </script>
 </body>
 </html>

@@ -1,45 +1,157 @@
-# MedUp Pagamentos
+# MedUp Pagamentos - Sistema de Gestão de Cobranças
 
-Aplicativo para visualizar status de clientes usando APIs do Asaas e Efí.
+Sistema web para gestão de cobranças integrado com Asaas e Efí, desenvolvido para controle de clientes e pagamentos.
 
-## Configuração
+## 🚀 Funcionalidades
 
-1. Instale as dependências:
+- **Dashboard de Clientes**: Visualização completa dos clientes com status e informações financeiras
+- **Integração Asaas**: Sincronização automática de dados de clientes e cobranças
+- **Integração Efí**: Suporte opcional para boletos da Efí
+- **Sistema de Login**: Autenticação segura com JWT
+- **Filtros Avançados**: Por status, ativo/inativo, nome, CPF/CNPJ e fonte
+- **Modal de Detalhes**: Histórico completo de cobranças dos últimos 6 meses
+- **Design Responsivo**: Interface otimizada para desktop e mobile
+- **Tema Escuro**: Interface moderna com tema escuro
+
+## 🔐 Credenciais de Acesso
+
+- **Usuário**: Tiago
+- **Senha**: medup1302@
+
+## 🛠️ Tecnologias
+
+- **Backend**: Node.js, Express.js
+- **Frontend**: HTML5, CSS3, JavaScript (Vanilla), Bootstrap 5
+- **Autenticação**: JWT (JSON Web Tokens)
+- **APIs**: Asaas, Efí
+- **Deploy**: Docker
+
+## 📦 Instalação
+
+### Desenvolvimento Local
+
+1. Clone o repositório:
+```bash
+git clone <seu-repositorio>
+cd medup-pagamentos
+```
+
+2. Instale as dependências:
 ```bash
 npm install
 ```
 
-2. Configure as variáveis de ambiente no arquivo `.env`:
+3. Configure as variáveis de ambiente:
+```bash
+cp env.example .env
+# Edite o arquivo .env com suas credenciais
+```
+
+4. Execute o servidor:
+```bash
+npm start
+```
+
+5. Acesse: http://localhost:3000
+
+### Deploy com Docker
+
+1. Construa a imagem:
+```bash
+docker build -t medup-pagamentos .
+```
+
+2. Execute o container:
+```bash
+docker run -p 3000:3000 --env-file .env medup-pagamentos
+```
+
+## ⚙️ Configuração
+
+### Variáveis de Ambiente
+
 ```env
-# Asaas
-ASAAS_API_KEY=your_asaas_api_key
-ASAAS_BASE_URL=https://www.asaas.com/api/v3
-
-# Efí - API Cobranças
-EFI_CLIENT_ID=your_efi_client_id
-EFI_CLIENT_SECRET=your_efi_client_secret
-EFI_BASE_URL=https://cobrancas-h.api.efipay.com.br
-
 # Servidor
 PORT=3000
-NODE_ENV=development
+NODE_ENV=production
+
+# JWT
+JWT_SECRET=sua-chave-secreta-aqui
+
+# Asaas API
+ASAAS_API_KEY=sua-chave-api-asaas
+ASAAS_BASE_URL=https://www.asaas.com/api/v3
+
+# Efí API (opcional)
+EFI_CLIENT_ID=seu-client-id-efi
+EFI_CLIENT_SECRET=seu-client-secret-efi
+EFI_SANDBOX=true
 ```
 
-3. Execute o servidor:
-```bash
-npm run dev
-```
+## 📱 Interface
 
-## Funcionalidades
+### Desktop
+- Dashboard com estatísticas em cards
+- Tabela responsiva com filtros
+- Modal de detalhes em tela cheia
+- Navegação intuitiva
 
-- Visualização de clientes do Asaas
-- Visualização de cobranças da Efí (boletos, carnês, assinaturas, links)
-- Status de pagamentos (regular, inadimplente, vencido, etc.)
-- Interface web responsiva
+### Mobile
+- Cards responsivos para visualização móvel
+- Modal otimizado para telas pequenas
+- Filtros adaptados para touch
 
-## Segurança
+## 🔒 Segurança
 
-- Rate limiting
+- Autenticação JWT com expiração de 24h
+- Rate limiting (100 requests/15min por IP)
+- Headers de segurança com Helmet.js
 - CORS configurado
-- Helmet para headers de segurança
-- Apenas operações de leitura implementadas
+- Validação de entrada
+
+## 📊 APIs Integradas
+
+### Asaas
+- Listagem de clientes
+- Histórico de cobranças
+- Status de pagamentos
+- Dados financeiros
+
+### Efí (Opcional)
+- Geração de boletos
+- Links de pagamento
+- Status de transações
+
+## 🚀 Deploy
+
+### Hospedagem com Docker
+
+1. Configure suas variáveis de ambiente
+2. Construa a imagem Docker
+3. Execute o container na sua hospedagem
+4. Configure proxy reverso (nginx/apache) se necessário
+
+### Exemplo de docker-compose.yml
+
+```yaml
+version: '3.8'
+services:
+  medup-pagamentos:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    env_file:
+      - .env
+    restart: unless-stopped
+```
+
+## 📝 Licença
+
+Este projeto é propriedade da MedUp e destinado ao uso interno.
+
+## 👨‍💻 Desenvolvido por
+
+Sistema desenvolvido para MedUp - Gestão de Pagamentos

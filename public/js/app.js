@@ -1,46 +1,27 @@
-// Verificar se está logado
-function verificarLogin() {
-    const loggedIn = sessionStorage.getItem('medup_logged_in');
-    if (!loggedIn || loggedIn !== 'true') {
-        window.location.href = '/login.html';
-        return false;
-    }
-    return true;
-}
-
-// Verificar login ao carregar a página
-if (!verificarLogin()) {
-    // Redirecionamento já feito na função
-}
-
-// Função de logout
-function logout() {
-    sessionStorage.removeItem('medup_logged_in');
-    sessionStorage.removeItem('medup_user');
-    window.location.href = '/login.html';
-}
-
-// Tornar função global
-window.logout = logout;
-
-// Definir nome do usuário
-document.addEventListener('DOMContentLoaded', function() {
-    const userName = sessionStorage.getItem('medup_user');
-    if (userName) {
-        document.getElementById('userName').textContent = userName;
-    }
-});
-
 let dadosClientes = [];
 let clientesFiltrados = [];
 let paginaAtual = 1;
 const itensPorPagina = 20;
 let ordenacaoAtual = { campo: null, direcao: 'asc' };
 
+// Configuração do token de autenticação
+const token = localStorage.getItem('token');
+const apiHeaders = {
+    'Content-Type': 'application/json',
+    'Authorization': token ? `Bearer ${token}` : ''
+};
+
 // Carregar dados iniciais
 document.addEventListener('DOMContentLoaded', function() {
+    // Verificar se está autenticado
+    if (!token) {
+        window.location.href = '/login';
+        return;
+    }
+    
     carregarDados();
     configurarFiltros();
+    configurarLogout();
 });
 
 // Carregar dados dos clientes
@@ -49,47 +30,30 @@ async function carregarDados() {
     loading.classList.add('show');
 
     try {
-        const response = await fetch('/api/status-clientes');
-        dadosClientes = await response.json();
+        const response = await fetch('/api/status-clientes', {
+            headers: apiHeaders
+        });
         
-        // Verificar se são dados de exemplo
-        if (dadosClientes.length > 0 && dadosClientes[0].fonte === 'demo') {
-            mostrarMensagemInfo('⚠️ Modo Demo: Configure as credenciais do Asaas para ver dados reais.');
-        } else if (dadosClientes.length > 0 && dadosClientes[0].fonte === 'erro') {
-            mostrarMensagemInfo('❌ Erro de conexão: Verifique as configurações das APIs.');
-        } else if (dadosClientes.length === 0) {
-            mostrarMensagemInfo('ℹ️ Nenhum cliente encontrado. Configure as credenciais das APIs.');
+        if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+            return;
         }
+        
+        dadosClientes = await response.json();
         
         atualizarEstatisticas();
         atualizarTabela();
+        
+        // Verificar se há mensagem sobre Efí não configurada
+        if (dadosClientes.length === 0) {
+            mostrarMensagemInfo('Apenas dados do Asaas estão sendo exibidos. Configure as credenciais da Efí para ver dados completos.');
+        }
         
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
-        mostrarMensagemInfo('❌ Erro ao conectar com o servidor. Verifique sua conexão.');
-        // Usar dados de exemplo em caso de erro
-        dadosClientes = [
-            {
-                id: 'error-1',
-                nome: 'Erro de Conexão',
-                email: 'erro@exemplo.com',
-                cpfCnpj: '000.000.000-00',
-                telefone: '(00) 00000-0000',
-                status: 'erro',
-                inadimplencia: 0,
-                cobrancasVencidas: 0,
-                valorDevido: 0,
-                valorPago: 0,
-                ultimoPagamento: null,
-                ultimoVencimento: null,
-                statusUltimoBoleto: null,
-                ultimaAtividade: null,
-                ativo: false,
-                fonte: 'erro'
-            }
-        ];
-        atualizarEstatisticas();
-        atualizarTabela();
+        alert('Erro ao carregar dados dos clientes');
     } finally {
         loading.classList.remove('show');
     }
@@ -358,6 +322,9 @@ function atualizarConteudoTabela() {
 
 // Configurar filtros
 function configurarFiltros() {
+    // Definir "Ativos" como padrão
+    document.getElementById('filtroAtivo').value = 'true';
+    
     document.getElementById('filtroNome').addEventListener('input', atualizarTabela);
     document.getElementById('filtroStatus').addEventListener('change', atualizarTabela);
     document.getElementById('filtroAtivo').addEventListener('change', atualizarTabela);
@@ -495,6 +462,31 @@ function getStatusText(status) {
         'vencido': 'Vencido'
     };
     return textos[status] || status;
+}
+
+// Configurar logout
+function configurarLogout() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userNameElement = document.getElementById('userName');
+    if (userNameElement) {
+        userNameElement.textContent = user.username || 'Usuário';
+    }
+}
+
+// Função de logout
+async function logout() {
+    try {
+        await fetch('/api/logout', {
+            method: 'POST',
+            headers: apiHeaders
+        });
+    } catch (error) {
+        console.error('Erro no logout:', error);
+    } finally {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+    }
 }
 
 // Obter classe CSS do status
@@ -654,7 +646,17 @@ async function verDetalhes(clienteId) {
 
     try {
         // Buscar histórico de cobranças dos últimos 6 meses
-        const response = await fetch(`/api/cliente-detalhes/${clienteId}`);
+        const response = await fetch(`/api/cliente-detalhes/${clienteId}`, {
+            headers: apiHeaders
+        });
+        
+        if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+            return;
+        }
+        
         const dadosDetalhes = await response.json();
 
         // Atualizar título do modal
