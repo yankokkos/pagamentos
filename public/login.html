@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedUp Pagamentos - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #021015 0%, #042938 50%, #0a4d6b 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            background: linear-gradient(135deg, rgba(2, 16, 21, 0.95) 0%, rgba(4, 41, 56, 0.9) 100%);
+            border: 1px solid rgba(150, 212, 255, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 3rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo-section img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 1rem;
+            border: 3px solid rgba(150, 212, 255, 0.5);
+        }
+
+        .logo-section h1 {
+            color: rgba(150, 212, 255, 1);
+            font-size: 2rem;
+            font-weight: 300;
+            margin: 0;
+        }
+
+        .logo-section p {
+            color: rgba(150, 212, 255, 0.7);
+            font-size: 0.9rem;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .form-floating {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-floating input {
+            background: rgba(2, 16, 21, 0.8);
+            border: 1px solid rgba(150, 212, 255, 0.3);
+            color: rgba(150, 212, 255, 0.9);
+            border-radius: 10px;
+        }
+
+        .form-floating input:focus {
+            background: rgba(2, 16, 21, 0.9);
+            border-color: rgba(150, 212, 255, 0.6);
+            box-shadow: 0 0 0 0.2rem rgba(150, 212, 255, 0.25);
+            color: rgba(150, 212, 255, 1);
+        }
+
+        .form-floating label {
+            color: rgba(150, 212, 255, 0.7);
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #0a4d6b 0%, #042938 100%);
+            border: 1px solid rgba(150, 212, 255, 0.3);
+            color: rgba(150, 212, 255, 1);
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-login:hover {
+            background: linear-gradient(135deg, #042938 0%, #0a4d6b 100%);
+            border-color: rgba(150, 212, 255, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .alert {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            color: rgba(255, 182, 193, 1);
+            border-radius: 10px;
+        }
+
+        .loading {
+            display: none;
+        }
+
+        .loading.show {
+            display: inline-block;
+        }
+
+        @media (max-width: 576px) {
+            .login-card {
+                margin: 1rem;
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="logo-section">
+                <img src="favicon.svg" alt="MedUp Logo">
+                <h1>MedUp Pagamentos</h1>
+                <p>Sistema de Gestão de Cobranças</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="alert alert-danger" id="errorAlert" style="display: none;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="errorMessage"></span>
+                </div>
+
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="username" placeholder="Usuário" required>
+                    <label for="username"><i class="fas fa-user me-2"></i>Usuário</label>
+                </div>
+
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="password" placeholder="Senha" required>
+                    <label for="password"><i class="fas fa-lock me-2"></i>Senha</label>
+                </div>
+
+                <button type="submit" class="btn btn-login">
+                    <span class="loading" id="loadingSpinner">
+                        <i class="fas fa-spinner fa-spin me-2"></i>
+                    </span>
+                    <span id="loginText">
+                        <i class="fas fa-sign-in-alt me-2"></i>Entrar
+                    </span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorAlert = document.getElementById('errorAlert');
+            const errorMessage = document.getElementById('errorMessage');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const loginText = document.getElementById('loginText');
+            
+            // Mostrar loading
+            loadingSpinner.classList.add('show');
+            loginText.style.display = 'none';
+            errorAlert.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Login bem-sucedido
+                    localStorage.setItem('token', result.token);
+                    localStorage.setItem('user', JSON.stringify(result.user));
+                    window.location.href = '/';
+                } else {
+                    // Erro no login
+                    errorMessage.textContent = result.message || 'Erro ao fazer login';
+                    errorAlert.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Erro no login:', error);
+                errorMessage.textContent = 'Erro de conexão. Tente novamente.';
+                errorAlert.style.display = 'block';
+            } finally {
+                // Esconder loading
+                loadingSpinner.classList.remove('show');
+                loginText.style.display = 'inline';
+            }
+        });
+
+        // Verificar se já está logado
+        if (localStorage.getItem('token')) {
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

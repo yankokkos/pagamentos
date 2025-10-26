@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedUp Pagamentos - Status dos Clientes</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --medup-primary: #042938;
+            --medup-secondary: #96d4ff;
+            --medup-white: #ffffff;
+            --medup-dark: #031a24;
+            --medup-darker: #021015;
+        }
+
+        body {
+            background-color: var(--medup-primary);
+            color: var(--medup-white);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--medup-white) !important;
+        }
+
+        .navbar-brand img {
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .status-card {
+            transition: all 0.3s ease;
+        }
+        .status-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(150, 212, 255, 0.2);
+        }
+        .status-regular { border-left: 4px solid #28a745; }
+        .status-inadimplente { border-left: 4px solid #dc3545; }
+        .status-a_cobrar { border-left: 4px solid #ffc107; }
+        .status-vencido { border-left: 4px solid #6c757d; }
+        
+        .loading {
+            display: none;
+        }
+        .loading.show {
+            display: block;
+        }
+        
+        .stats-card {
+            background-color: var(--medup-dark);
+            color: var(--medup-white);
+            border: 1px solid rgba(150, 212, 255, 0.1);
+            box-shadow: 
+                0 4px 6px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(150, 212, 255, 0.1);
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 25px rgba(0, 0, 0, 0.4),
+                0 0 20px rgba(150, 212, 255, 0.1),
+                inset 0 1px 0 rgba(150, 212, 255, 0.2);
+            border-color: rgba(150, 212, 255, 0.3);
+        }
+        
+        .table-responsive {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .badge-status {
+            font-size: 0.8em;
+        }
+
+        .card {
+            background-color: var(--medup-dark);
+            border: 1px solid rgba(150, 212, 255, 0.1);
+            box-shadow: 
+                0 4px 6px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(150, 212, 255, 0.05);
+        }
+
+        .card-header {
+            background-color: var(--medup-darker);
+            color: var(--medup-white);
+            border-bottom: 1px solid rgba(150, 212, 255, 0.1);
+            box-shadow: inset 0 1px 0 rgba(150, 212, 255, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--medup-secondary);
+            border-color: var(--medup-secondary);
+            color: var(--medup-primary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--medup-white);
+            border-color: var(--medup-white);
+            color: var(--medup-primary);
+            box-shadow: 0 4px 8px rgba(150, 212, 255, 0.3);
+        }
+
+        .btn-outline-primary {
+            color: var(--medup-secondary);
+            border-color: var(--medup-secondary);
+            background-color: transparent;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--medup-secondary);
+            border-color: var(--medup-secondary);
+            color: var(--medup-primary);
+            box-shadow: 0 4px 8px rgba(150, 212, 255, 0.3);
+        }
+
+        .alert-info {
+            background-color: rgba(150, 212, 255, 0.1);
+            border: 1px solid rgba(150, 212, 255, 0.3);
+            color: var(--medup-secondary);
+        }
+
+        .navbar-dark {
+            background-color: var(--medup-darker) !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-control {
+            background-color: var(--medup-dark);
+            border: 1px solid rgba(150, 212, 255, 0.2);
+            color: var(--medup-white);
+        }
+
+        .form-control:focus {
+            background-color: var(--medup-dark);
+            border-color: var(--medup-secondary);
+            color: var(--medup-white);
+            box-shadow: 0 0 0 0.2rem rgba(150, 212, 255, 0.25);
+        }
+
+        .form-control::placeholder {
+            color: rgba(150, 212, 255, 0.6);
+        }
+
+        .form-select {
+            background-color: var(--medup-dark);
+            border: 1px solid rgba(150, 212, 255, 0.2);
+            color: var(--medup-white);
+        }
+
+        .form-select:focus {
+            background-color: var(--medup-dark);
+            border-color: var(--medup-secondary);
+            color: var(--medup-white);
+            box-shadow: 0 0 0 0.2rem rgba(150, 212, 255, 0.25);
+        }
+
+        .table {
+            color: var(--medup-white);
+        }
+
+        .table-dark {
+            --bs-table-bg: var(--medup-dark);
+            --bs-table-striped-bg: rgba(150, 212, 255, 0.05);
+            --bs-table-hover-bg: rgba(150, 212, 255, 0.1);
+        }
+
+        .table-dark th {
+            background-color: var(--medup-darker);
+            border-color: rgba(150, 212, 255, 0.1);
+        }
+
+        .table-dark td {
+            border-color: rgba(150, 212, 255, 0.1);
+        }
+
+        .modal-content {
+            background-color: var(--medup-dark);
+            border: 1px solid rgba(150, 212, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            background-color: var(--medup-darker);
+            border-bottom: 1px solid rgba(150, 212, 255, 0.1);
+        }
+
+        .modal-title {
+            color: var(--medup-white);
+        }
+
+        .btn-close {
+            filter: invert(1);
+        }
+
+        .text-muted {
+            color: rgba(150, 212, 255, 0.6) !important;
+        }
+
+        .spinner-border {
+            color: var(--medup-secondary);
+        }
+        
+        /* Melhorias visuais da tabela */
+        .table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            transform: translateY(-1px);
+            transition: all 0.2s ease;
+        }
+
+        .cliente-row {
+            transition: all 0.2s ease;
+        }
+
+        .cliente-row:hover {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-outline-primary:hover {
+            transform: scale(1.05);
+            transition: all 0.2s ease;
+        }
+
+        /* Melhorias nos badges */
+        .badge {
+            font-size: 0.75em;
+            padding: 0.5em 0.75em;
+            border-radius: 0.5rem;
+        }
+
+        /* Melhorias nos filtros */
+        .form-control, .form-select {
+            border: 1px solid #444;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Melhorias na paginação */
+        .page-link {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid #444;
+            color: #fff;
+            transition: all 0.2s ease;
+        }
+
+        .page-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: #0d6efd;
+            transform: translateY(-1px);
+        }
+
+        .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        /* Melhorias de responsividade */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 10px;
+            }
+            
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+            
+            .navbar-brand img {
+                height: 30px;
+            }
+            
+            .card {
+                margin-bottom: 1rem;
+            }
+            
+            .table-responsive {
+                font-size: 0.85rem;
+            }
+            
+            .btn-sm {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            
+            .badge {
+                font-size: 0.65em;
+                padding: 0.35em 0.6em;
+            }
+            
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+            
+            .modal-xl {
+                max-width: calc(100% - 1rem);
+            }
+            
+            .stats-card {
+                margin-bottom: 1rem;
+            }
+            
+            .stats-card h3 {
+                font-size: 1.5rem;
+            }
+            
+            .stats-card h5 {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .table th, .table td {
+                padding: 0.5rem 0.25rem;
+                font-size: 0.8rem;
+            }
+            
+            .btn-outline-primary {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.7rem;
+            }
+            
+            .form-control, .form-select {
+                font-size: 0.85rem;
+                padding: 0.375rem 0.5rem;
+            }
+            
+            .pagination {
+                font-size: 0.8rem;
+            }
+            
+            .page-link {
+                padding: 0.375rem 0.5rem;
+            }
+        }
+
+        /* Melhorias para telas grandes */
+        @media (min-width: 1200px) {
+            .container {
+                max-width: 1400px;
+            }
+            
+            .table {
+                font-size: 0.95rem;
+            }
+            
+            .stats-card h3 {
+                font-size: 2.5rem;
+            }
+            
+            .modal-xl {
+                max-width: 1200px;
+            }
+        }
+
+        /* Animações mais suaves e modernas */
+        .card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(150, 212, 255, 0.1);
+        }
+
+        .table tbody tr {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(150, 212, 255, 0.08) !important;
+            transform: translateX(4px);
+            box-shadow: 
+                0 4px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(150, 212, 255, 0.1);
+        }
+
+        .btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Melhorias nos badges */
+        .badge {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .badge:hover::before {
+            left: 100%;
+        }
+
+        /* Melhorias nos filtros */
+        .form-control, .form-select {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .form-control:focus, .form-select:focus {
+            transform: scale(1.02);
+            box-shadow: 
+                0 0 0 0.2rem rgba(13, 110, 253, 0.25),
+                0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Melhorias na paginação */
+        .page-link {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.4s;
+        }
+
+        .page-link:hover::before {
+            left: 100%;
+        }
+
+        .page-link:hover {
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        /* Melhorias no modal */
+        .modal-content {
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(150, 212, 255, 0.2);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(150, 212, 255, 0.1);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, rgba(150, 212, 255, 0.1) 0%, rgba(4, 41, 56, 0.8) 100%);
+            border-bottom: 1px solid rgba(150, 212, 255, 0.2);
+        }
+
+        .modal-body {
+            background: rgba(2, 16, 21, 0.95);
+        }
+
+        .modal-footer {
+            background: linear-gradient(135deg, rgba(4, 41, 56, 0.8) 0%, rgba(150, 212, 255, 0.1) 100%);
+            border-top: 1px solid rgba(150, 212, 255, 0.2);
+        }
+
+        /* Melhorias na navbar */
+        .navbar {
+            backdrop-filter: blur(20px);
+            background: rgba(4, 41, 56, 0.95) !important;
+            border-bottom: 1px solid rgba(150, 212, 255, 0.2);
+        }
+
+        /* Efeitos de loading melhorados */
+        .spinner-border {
+            animation: spin 1s linear infinite, pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Melhorias na tabela */
+        .table {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, rgba(150, 212, 255, 0.1) 0%, rgba(4, 41, 56, 0.8) 100%);
+            border-bottom: 2px solid rgba(150, 212, 255, 0.3);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody tr {
+            border-bottom: 1px solid rgba(150, 212, 255, 0.1);
+        }
+
+        .table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        /* Melhorias nos cards de estatísticas */
+        .stats-card {
+            background: linear-gradient(135deg, rgba(2, 16, 21, 0.9) 0%, rgba(4, 41, 56, 0.8) 100%);
+            border: 1px solid rgba(150, 212, 255, 0.2);
+            backdrop-filter: blur(15px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-6px) scale(1.03);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(150, 212, 255, 0.3);
+        }
+
+        .stats-card .card-body {
+            padding: 1.5rem;
+        }
+
+        .stats-card h3 {
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .stats-card h5 {
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        /* Melhorias na tipografia */
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+            letter-spacing: -0.025em;
+        }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(4, 41, 56, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(150, 212, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(150, 212, 255, 0.5);
+        }
+
+        /* Efeitos de foco melhorados */
+        *:focus {
+            outline: none;
+        }
+
+        .form-control:focus, .form-select:focus, .btn:focus {
+            box-shadow: 
+                0 0 0 0.2rem rgba(13, 110, 253, 0.25),
+                0 0 20px rgba(13, 110, 253, 0.3);
+        }
+
+        /* Estilos para cards mobile */
+        .cliente-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(150, 212, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .cliente-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(150, 212, 255, 0.3);
+            border-color: rgba(150, 212, 255, 0.4);
+        }
+
+        .cliente-card:active {
+            transform: translateY(-2px) scale(1.01);
+        }
+
+        .cliente-card .card-body {
+            padding: 1rem;
+        }
+
+        .cliente-card .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .cliente-card small {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .cliente-card .fw-bold {
+            font-size: 0.85rem;
+        }
+
+        /* Melhorias para tablets */
+        @media (min-width: 768px) and (max-width: 991px) {
+            .table-responsive {
+                font-size: 0.9rem;
+            }
+            
+            .btn-sm {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
+            }
+            
+            .badge {
+                font-size: 0.7em;
+                padding: 0.4em 0.7em;
+            }
+        }
+
+        /* Melhorias para telas muito pequenas */
+        @media (max-width: 480px) {
+            .cliente-card {
+                margin-left: 0.5rem !important;
+                margin-right: 0.5rem !important;
+            }
+            
+            .cliente-card .card-body {
+                padding: 0.75rem;
+            }
+            
+            .cliente-card .row.g-2 {
+                --bs-gutter-x: 0.5rem;
+            }
+            
+            .btn-sm {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.7rem;
+            }
+        }
+
+        /* Melhorias gerais de espaçamento */
+        .container {
+            max-width: 1400px;
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+
+        @media (min-width: 1200px) {
+            .container {
+                max-width: 1600px;
+            }
+        }
+
+        /* Melhorias nos cards de estatísticas */
+        .stats-card {
+            min-height: 180px;
+        }
+
+        .stats-card .card-body {
+            padding: 2rem 1.5rem;
+        }
+
+        .stats-card i {
+            font-size: 3.5rem !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .stats-card h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+
+        .stats-card h5 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem !important;
+        }
+
+        /* Melhorias na seção de filtros */
+        .card-body {
+            padding: 2rem;
+        }
+
+        .form-label {
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+        }
+
+        .input-group-text {
+            padding: 0.75rem 1rem;
+        }
+
+        /* Melhorias na tabela */
+        .table th {
+            padding: 1rem 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .table td {
+            padding: 0.875rem 0.75rem;
+            font-size: 0.95rem;
+            vertical-align: middle;
+        }
+
+        .table th input, .table th select {
+            margin-top: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+        }
+
+        /* Melhorias no modal */
+        .modal-xl {
+            max-width: 95vw !important;
+            width: 95vw !important;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(2, 16, 21, 0.98) 0%, rgba(4, 41, 56, 0.95) 100%) !important;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(150, 212, 255, 0.3);
+            box-shadow: 
+                0 30px 60px rgba(0, 0, 0, 0.6),
+                0 0 0 1px rgba(150, 212, 255, 0.2);
+            border-radius: 1rem;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, rgba(150, 212, 255, 0.15) 0%, rgba(4, 41, 56, 0.9) 100%);
+            border-bottom: 2px solid rgba(150, 212, 255, 0.3);
+            border-radius: 1rem 1rem 0 0;
+            padding: 1.5rem 2rem;
+            flex-shrink: 0;
+        }
+
+        .modal-header h5 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #96d4ff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-body {
+            background: linear-gradient(135deg, rgba(2, 16, 21, 0.98) 0%, rgba(4, 41, 56, 0.95) 100%);
+            padding: 2rem;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-footer {
+            background: linear-gradient(135deg, rgba(4, 41, 56, 0.9) 0%, rgba(150, 212, 255, 0.15) 100%);
+            border-top: 2px solid rgba(150, 212, 255, 0.3);
+            border-radius: 0 0 1rem 1rem;
+            padding: 1.5rem 2rem;
+            flex-shrink: 0;
+        }
+
+        /* Cards internos do modal */
+        .modal .card {
+            background: linear-gradient(135deg, rgba(2, 16, 21, 0.9) 0%, rgba(4, 41, 56, 0.8) 100%) !important;
+            border: 1px solid rgba(150, 212, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .modal .card:hover {
+            border-color: rgba(150, 212, 255, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal .card-header {
+            background: linear-gradient(135deg, rgba(150, 212, 255, 0.1) 0%, rgba(4, 41, 56, 0.8) 100%);
+            border-bottom: 1px solid rgba(150, 212, 255, 0.2);
+            border-radius: 0.75rem 0.75rem 0 0;
+            padding: 1rem 1.5rem;
+        }
+
+        .modal .card-header h6 {
+            color: #96d4ff;
+            font-weight: 600;
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .modal .card-body {
+            padding: 1.5rem;
+            height: calc(100% - 60px);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Informações do modal */
+        .modal .d-flex.justify-content-between {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(150, 212, 255, 0.1);
+            transition: all 0.2s ease;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal .d-flex.justify-content-between:hover {
+            background-color: rgba(150, 212, 255, 0.05);
+            border-radius: 0.5rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .modal .d-flex.justify-content-between:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .modal strong {
+            color: #96d4ff;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .modal span {
+            color: #ffffff;
+            font-size: 0.9rem;
+        }
+
+        /* Tabela do modal */
+        .modal .table {
+            background: rgba(2, 16, 21, 0.8) !important;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        .modal .table-responsive {
+            background: rgba(2, 16, 21, 0.8) !important;
+        }
+
+        .modal .table thead th {
+            background: linear-gradient(135deg, rgba(150, 212, 255, 0.15) 0%, rgba(4, 41, 56, 0.8) 100%);
+            border-bottom: 2px solid rgba(150, 212, 255, 0.3);
+            color: #96d4ff;
+            font-weight: 700;
+            padding: 0.75rem 0.5rem;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .modal .table tbody tr {
+            border-bottom: 1px solid rgba(150, 212, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .modal .table tbody tr:hover {
+            background-color: rgba(150, 212, 255, 0.08);
+        }
+
+        .modal .table tbody td {
+            padding: 0.75rem 0.5rem;
+            color: #ffffff;
+            vertical-align: middle;
+            font-size: 0.85rem;
+        }
+
+        /* Badges do modal */
+        .modal .badge {
+            font-size: 0.75em;
+            padding: 0.5em 0.8em;
+            font-weight: 600;
+            border-radius: 0.4rem;
+        }
+
+        /* Valores financeiros destacados */
+        .modal .text-danger.fw-bold.fs-5 {
+            font-size: 1.1rem !important;
+            font-weight: 800 !important;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal .text-success.fw-bold.fs-5 {
+            font-size: 1.1rem !important;
+            font-weight: 800 !important;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Estado vazio do modal */
+        .modal .text-center.text-muted.py-4 {
+            padding: 2rem 1rem !important;
+        }
+
+        .modal .text-center.text-muted.py-4 i {
+            color: rgba(150, 212, 255, 0.3);
+        }
+
+        .modal .text-center.text-muted.py-4 p {
+            color: rgba(150, 212, 255, 0.6);
+            font-size: 1rem;
+        }
+
+        /* Layout responsivo melhorado */
+        .modal .row.g-3 {
+            margin: 0 -0.75rem;
+        }
+
+        .modal .row.g-3 > * {
+            padding: 0 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Forçar layout responsivo específico */
+        @media (min-width: 576px) {
+            .modal .col-sm-6 {
+                flex: 0 0 50% !important;
+                max-width: 50% !important;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .modal .col-lg-3 {
+                flex: 0 0 25% !important;
+                max-width: 25% !important;
+            }
+        }
+
+        /* Garantir que os cards ocupem toda a largura */
+        .modal .card {
+            width: 100%;
+        }
+
+        /* Forçar layout específico para o modal */
+        .modal .row.g-3 {
+            display: flex !important;
+            flex-wrap: wrap !important;
+        }
+
+        .modal .col-12 {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+
+        .modal .col-sm-6 {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .modal .col-lg-3 {
+            flex: 0 0 25% !important;
+            max-width: 25% !important;
+        }
+
+        /* Debug - mostrar bordas dos cards */
+        .modal .card {
+            border: 2px solid rgba(150, 212, 255, 0.3) !important;
+        }
+
+        /* Corrigir fundo da tabela no modal */
+        .modal .table {
+            background: rgba(2, 16, 21, 0.8) !important;
+            color: rgba(150, 212, 255, 0.9) !important;
+        }
+
+        .modal .table thead th {
+            background: rgba(4, 41, 56, 0.9) !important;
+            color: rgba(150, 212, 255, 1) !important;
+            border-color: rgba(150, 212, 255, 0.3) !important;
+        }
+
+        .modal .table tbody td {
+            background: rgba(2, 16, 21, 0.8) !important;
+            color: rgba(150, 212, 255, 0.9) !important;
+            border-color: rgba(150, 212, 255, 0.2) !important;
+        }
+
+        .modal .table tbody tr:hover td {
+            background: rgba(4, 41, 56, 0.6) !important;
+        }
+
+        /* Responsividade do modal */
+        @media (max-width: 1400px) {
+            .modal-xl {
+                max-width: 98vw !important;
+                width: 98vw !important;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .modal-xl {
+                max-width: 95vw !important;
+                width: 95vw !important;
+            }
+            
+            .modal-body {
+                padding: 1.5rem;
+            }
+            
+            .modal-header, .modal-footer {
+                padding: 1rem 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .modal-xl {
+                max-width: 100vw !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                margin: 0 !important;
+            }
+            
+            .modal-content {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .modal-body {
+                padding: 1rem;
+            }
+            
+            .modal-header, .modal-footer {
+                padding: 1rem;
+            }
+            
+            .modal .card-body {
+                padding: 1rem;
+            }
+            
+            .modal .d-flex.justify-content-between {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+            }
+            
+            .modal .d-flex.justify-content-between span {
+                align-self: flex-end;
+            }
+        }
+
+        /* Melhorias na paginação */
+        .card-footer {
+            padding: 1.5rem 2rem;
+            background: rgba(4, 41, 56, 0.8);
+            border-top: 1px solid rgba(150, 212, 255, 0.2);
+        }
+
+        /* Melhorias na navbar */
+        .navbar {
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .navbar-brand img {
+            height: 40px;
+        }
+
+        /* Melhorias nos badges */
+        .badge {
+            font-size: 0.8em;
+            padding: 0.6em 1em;
+            font-weight: 600;
+        }
+
+        /* Melhorias nos botões */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        /* Melhorias na responsividade */
+        @media (max-width: 768px) {
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            .card-body {
+                padding: 1.5rem;
+            }
+            
+            .stats-card .card-body {
+                padding: 1.5rem 1rem;
+            }
+            
+            .stats-card i {
+                font-size: 2.5rem !important;
+            }
+            
+            .stats-card h2 {
+                font-size: 2rem;
+            }
+            
+            .modal-body {
+                padding: 1.5rem;
+            }
+            
+            .modal-header, .modal-footer {
+                padding: 1rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <img src="/favicon.svg" alt="MedUp Logo" class="d-inline-block align-top">
+                MedUp Pagamentos
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="btn-atualizar">
+                            <i class="fas fa-sync-alt me-1"></i>
+                            Atualizar
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i><span id="userName">Usuário</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()">
+                                <i class="fas fa-sign-out-alt me-2"></i>Sair
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Cards de Estatísticas -->
+        <div class="row mb-4 g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="card stats-card h-100">
+                    <div class="card-body text-center d-flex flex-column justify-content-center">
+                        <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title mb-2">Total Clientes</h5>
+                        <h2 class="mb-0 fw-bold" id="totalClientes">-</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card stats-card h-100">
+                    <div class="card-body text-center d-flex flex-column justify-content-center">
+                        <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                        <h5 class="card-title mb-2">Inadimplentes</h5>
+                        <h2 class="mb-0 fw-bold" id="totalInadimplentes">-</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card stats-card h-100">
+                    <div class="card-body text-center d-flex flex-column justify-content-center">
+                        <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                        <h5 class="card-title mb-2">A Cobrar</h5>
+                        <h2 class="mb-0 fw-bold" id="totalACobrar">-</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card stats-card h-100">
+                    <div class="card-body text-center d-flex flex-column justify-content-center">
+                        <i class="fas fa-dollar-sign fa-3x text-success mb-3"></i>
+                        <h5 class="card-title mb-2">Valor Devido</h5>
+                        <h2 class="mb-0 fw-bold" id="valorDevido">-</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="text-center loading" id="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p class="mt-2">Carregando dados dos clientes...</p>
+        </div>
+
+        <!-- Filtros -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-4 col-md-6">
+                        <label for="filtroNome" class="form-label fw-bold">Filtrar por Nome</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" id="filtroNome" placeholder="Digite o nome do cliente...">
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-6">
+                        <label for="filtroStatus" class="form-label fw-bold">Status</label>
+                        <select class="form-select" id="filtroStatus">
+                            <option value="">Todos os status</option>
+                            <option value="regular">Regular</option>
+                            <option value="inadimplente">Inadimplente</option>
+                            <option value="a_cobrar">A Cobrar</option>
+                            <option value="vencido">Vencido</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-6">
+                        <label for="filtroAtivo" class="form-label fw-bold">Ativo/Inativo</label>
+                        <select class="form-select" id="filtroAtivo">
+                            <option value="">Todos</option>
+                            <option value="true" selected>Ativos</option>
+                            <option value="false">Inativos</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-6">
+                        <label for="filtroFonte" class="form-label fw-bold">Fonte</label>
+                        <select class="form-select" id="filtroFonte">
+                            <option value="">Todas as fontes</option>
+                            <option value="asaas">Asaas</option>
+                            <option value="efi">Efí</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-secondary fs-6" id="totalRegistros">0 registros</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Clientes -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Status dos Clientes
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <!-- Versão Desktop/Tablet -->
+                <div class="table-responsive d-none d-lg-block">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>
+                                    <div class="d-flex align-items-center">
+                                        <span>Nome</span>
+                                        <div class="ms-2">
+                                            <button class="btn btn-sm btn-outline-light p-1" onclick="ordenarPor('nome')" title="Ordenar">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="text" class="form-control form-control-sm mt-1" placeholder="Filtrar nome..." id="filtroNomeColuna">
+                                </th>
+                                <th>
+                                    <div class="d-flex align-items-center">
+                                        <span>CPF/CNPJ</span>
+                                        <div class="ms-2">
+                                            <button class="btn btn-sm btn-outline-light p-1" onclick="ordenarPor('cpfCnpj')" title="Ordenar">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="text" class="form-control form-control-sm mt-1" placeholder="Filtrar CPF/CNPJ..." id="filtroCpfCnpjColuna">
+                                </th>
+                                <th>
+                                    <div class="d-flex align-items-center">
+                                        <span>Status</span>
+                                        <div class="ms-2">
+                                            <button class="btn btn-sm btn-outline-light p-1" onclick="ordenarPor('status')" title="Ordenar">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <select class="form-select form-select-sm mt-1" id="filtroStatusColuna">
+                                        <option value="">Todos</option>
+                                        <option value="regular">Regular</option>
+                                        <option value="inadimplente">Inadimplente</option>
+                                        <option value="a_cobrar">A Cobrar</option>
+                                        <option value="vencido">Vencido</option>
+                                    </select>
+                                </th>
+                                <th>
+                                    <div class="d-flex align-items-center">
+                                        <span>Inadimplência</span>
+                                        <div class="ms-2">
+                                            <button class="btn btn-sm btn-outline-light p-1" onclick="ordenarPor('inadimplencia')" title="Ordenar">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="number" class="form-control form-control-sm mt-1" placeholder="Min" id="filtroInadimplenciaMin">
+                                </th>
+                                <th>
+                                    <div class="d-flex align-items-center">
+                                        <span>Valor Devido</span>
+                                        <div class="ms-2">
+                                            <button class="btn btn-sm btn-outline-light p-1" onclick="ordenarPor('valorDevido')" title="Ordenar">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="number" class="form-control form-control-sm mt-1" placeholder="Min" id="filtroValorDevidoMin">
+                                </th>
+                                <th>
+                                    <div class="d-flex align-items-center">
+                                        <span>Valor Pago</span>
+                                        <div class="ms-2">
+                                            <button class="btn btn-sm btn-outline-light p-1" onclick="ordenarPor('valorPago')" title="Ordenar">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="number" class="form-control form-control-sm mt-1" placeholder="Min" id="filtroValorPagoMin">
+                                </th>
+                                <th>
+                                    <div class="d-flex align-items-center">
+                                        <span>Último Pagamento</span>
+                                        <div class="ms-2">
+                                            <button class="btn btn-sm btn-outline-light p-1" onclick="ordenarPor('ultimoPagamento')" title="Ordenar">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="date" class="form-control form-control-sm mt-1" id="filtroUltimoPagamentoMin">
+                                </th>
+                                <th>
+                                    <div class="d-flex align-items-center">
+                                        <span>Último Vencimento</span>
+                                        <div class="ms-2">
+                                            <button class="btn btn-sm btn-outline-light p-1" onclick="ordenarPor('ultimoVencimento')" title="Ordenar">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="date" class="form-control form-control-sm mt-1" id="filtroUltimoVencimentoMin">
+                                </th>
+                                <th>
+                                    <div class="d-flex align-items-center">
+                                        <span>Última Atividade</span>
+                                        <div class="ms-2">
+                                            <button class="btn btn-sm btn-outline-light p-1" onclick="ordenarPor('ultimaAtividade')" title="Ordenar">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="date" class="form-control form-control-sm mt-1" id="filtroUltimaAtividadeMin">
+                                </th>
+                                <th>
+                                    <div class="d-flex align-items-center">
+                                        <span>Ativo</span>
+                                        <div class="ms-2">
+                                            <button class="btn btn-sm btn-outline-light p-1" onclick="ordenarPor('ativo')" title="Ordenar">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <select class="form-select form-select-sm mt-1" id="filtroAtivoColuna">
+                                        <option value="">Todos</option>
+                                        <option value="true">Ativo</option>
+                                        <option value="false">Inativo</option>
+                                    </select>
+                                </th>
+                                <th>
+                                    <div class="d-flex align-items-center">
+                                        <span>Fonte</span>
+                                        <div class="ms-2">
+                                            <button class="btn btn-sm btn-outline-light p-1" onclick="ordenarPor('fonte')" title="Ordenar">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <select class="form-select form-select-sm mt-1" id="filtroFonteColuna">
+                                        <option value="">Todas</option>
+                                        <option value="asaas">Asaas</option>
+                                        <option value="efi">Efí</option>
+                                    </select>
+                                </th>
+                                <th class="text-center">
+                                    <span>Ações</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaClientes">
+                            <tr>
+                                <td colspan="9" class="text-center text-muted">
+                                    Clique em "Atualizar" para carregar os dados
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Versão Mobile (Cards) -->
+                <div class="d-lg-none" id="cardsClientes">
+                    <div class="text-center text-muted p-4">
+                        Clique em "Atualizar" para carregar os dados
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Paginação -->
+            <div class="card-footer">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <span class="text-muted" id="info-paginacao">
+                            Mostrando 0 de 0 registros
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <nav aria-label="Paginação">
+                            <ul class="pagination pagination-sm justify-content-end mb-0" id="paginacao">
+                                <!-- Paginação será inserida aqui dinamicamente -->
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Detalhes -->
+        <div class="modal fade" id="modalDetalhes" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Detalhes do Cliente</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="modalDetalhesBody">
+                        <!-- Conteúdo será preenchido dinamicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>

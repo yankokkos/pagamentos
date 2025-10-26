@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  medup-pagamentos:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-3000}
+      - JWT_SECRET=${JWT_SECRET:-medup-secret-key-change-in-production}
+      - ASAAS_API_KEY=${ASAAS_API_KEY}
+      - ASAAS_BASE_URL=${ASAAS_BASE_URL:-https://www.asaas.com/api/v3}
+      - EFI_CLIENT_ID=${EFI_CLIENT_ID:-}
+      - EFI_CLIENT_SECRET=${EFI_CLIENT_SECRET:-}
+      - EFI_BASE_URL=${EFI_BASE_URL:-https://cobrancas-h.api.efipay.com.br}
+      - NODE_TLS_REJECT_UNAUTHORIZED=${NODE_TLS_REJECT_UNAUTHORIZED:-0}
+      - TRUST_PROXY=${TRUST_PROXY:-true}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - CORS_CREDENTIALS=${CORS_CREDENTIALS:-false}
+      - SSL_VERIFY=${SSL_VERIFY:-false}
+      - FORWARDED_PROTO=${FORWARDED_PROTO:-https}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
